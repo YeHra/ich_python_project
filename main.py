@@ -8,13 +8,14 @@ def paginator(headers: list[str], results: list[tuple], page_size: int = 10):
     """
     Выводит результаты по страницам с возможностью продолжения.
     :param headers: Заголовки таблицы.
-    :param results: Список кортежей с данными.
+    :param results: Список кортежей с данными (или кортеж кортежей).
     :param page_size: Количество строк на одной странице.
     """
     if not results:
         print("По вашему запросу ничего не найдено.")
         return
 
+    # Преобразуем результаты в список, если это еще не список
     total_results = len(results)
     current_page = 0
 
@@ -22,19 +23,22 @@ def paginator(headers: list[str], results: list[tuple], page_size: int = 10):
         start_index = current_page * page_size
         end_index = start_index + page_size
 
-        output_data = results[start_index:end_index]
+        # Получаем подмножество данных для текущей страницы
+        page_data = results[start_index:end_index]
 
-        if not output_data:
+        if not page_data:
             print("Все результаты показаны.")
             break
 
         print(f"\n--- Результаты ({start_index + 1}-{min(end_index, total_results)} из {total_results}) ---")
-        ui.print_table_data(headers, output_data)
+        ui.print_table_data(headers, page_data)
 
+        # Проверяем, есть ли еще данные для показа
         if end_index >= total_results:
             print("Все результаты показаны.")
             break
 
+        # Спрашиваем пользователя, хочет ли он продолжить
         if not ui.ask_for_pagination():
             break
 

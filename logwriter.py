@@ -4,13 +4,10 @@ import sys
 sys.path.insert(0,"/home/user1/Документы/ICH/Python/project/lib/python3.12/site-packages")
 from pymongo import MongoClient
 
-client = MongoClient(settings.DATABASE_MONGO_W)  #
+client = MongoClient(settings.DATABASE_MONGO_W)
 
-db_mongo = client[settings.DATABASE_MONGO_NAME]  #
-search_info = db_mongo[settings.COLLECTION_MONGO_NAME]  #
-
-
-# client.admin.command("ping") # Перенесено или не требуется в общем потоке
+db_mongo = client[settings.DATABASE_MONGO_NAME]
+search_info = db_mongo[settings.COLLECTION_MONGO_NAME]
 
 
 def search_log(search_type: str, params: dict, results_count: int):
@@ -39,13 +36,12 @@ def five_last_query():
     results = []
     try:
         for doc in search_info.find().sort("timestamp", -1).limit(5):
-            # Преобразуем ObjectId и datetime в строки для лучшей читаемости в таблице
             doc['_id'] = str(doc['_id'])
             doc['timestamp'] = doc['timestamp'].strftime('%Y-%m-%d %H:%M:%S')
             results.append(doc)
     except Exception as e:
         print(f"Error retrieving five last queries from MongoDB: {e}")
-    return results  # Теперь возвращает список словарей
+    return results
 
 
 def five_popular_query():
@@ -63,7 +59,5 @@ def five_popular_query():
     except Exception as e:
         print(f"Error retrieving five popular queries from MongoDB: {e}")
 
-    # Преобразуем результат агрегации для удобства PrettyTable
-    # Превращаем [{'_id': 'Action', 'count_category': 5}] в [('Action', 5)]
     formatted_results = [(doc['_id'], doc['count_category']) for doc in popular_searches]
     return formatted_results
