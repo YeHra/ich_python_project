@@ -9,55 +9,51 @@ def connection():
         conn = pymysql.connect(**settings.DATABASE_MYSQL_R) #
         return conn
     except pymysql.Error as e:
-        print(f"Error connecting to database: {e}")
+        print(f"Ошибка подключения к базе данных: {e}")
         return None
 
 
-# db_conn = connection() # Удаляем глобальное подключение
 
-
-def all_category(db_conn): # Добавлен db_conn параметр
+def all_category(db_conn):
     """
     Функция выполняет запрос к базе данных и возвращает результат запроса.
     :db_conn: Переменная, которая вызывает подключение к базе данных
-    :return: Список кортежей с результатами запроса
+    :return: Список строк с результатами запроса
     """
-    if db_conn is None:
-        print("Database connection is not established.")
-        return []
     with db_conn.cursor() as cursor:
-        cursor.execute('SELECT name FROM category')
-        return [row[0] for row in cursor.fetchall()] # Возвращаем список строк, а не кортежей
+        cursor.execute('SELECT name FROM category ORDER BY name')
+        categories = [row[0] for row in cursor.fetchall()]
+        results = [(category,) for category in categories]
+    return results
 
-
-def min_release_year(db_conn): # Добавлен db_conn параметр
+def min_release_year(db_conn) -> int:
     """
     Функция выполняет запрос к базе данных и возвращает результат запроса.
     :db_conn: Переменная, которая вызывает подключение к базе данных
     :return: Год
     """
-    if db_conn is None:
-        print("Database connection is not established.")
-        return None
     with db_conn.cursor() as cursor:
         cursor.execute('SELECT MIN(release_year) FROM film')
         result = cursor.fetchone()
-        return result[0] if result else None
+        if result:
+            return result[0]
+        else:
+            return None
 
 
-def max_release_year(db_conn): # Добавлен db_conn параметр
+def max_release_year(db_conn) -> int:
     """
     Функция выполняет запрос к базе данных и возвращает результат запроса.
     :db_conn: Переменная, которая вызывает подключение к базе данных
     :return: Год
     """
-    if db_conn is None:
-        print("Database connection is not established.")
-        return None
     with db_conn.cursor() as cursor:
         cursor.execute('SELECT MAX(release_year) FROM film')
         result = cursor.fetchone()
-        return result[0] if result else None
+        if result:
+            return result[0]
+        else:
+            return None
 
 
 def search_data_about_film_with_keyword(db_conn, keyword_pattern: str):
@@ -68,22 +64,17 @@ def search_data_about_film_with_keyword(db_conn, keyword_pattern: str):
     :keyword_pattern: Паттерн,включающий ключевое слово, вводимое пользователем
     :return: Кортеж: (Список кортежей с результатами запроса, Список имен столбцов)
     """
-    if db_conn is None:
-        print("Database connection is not established.")
-        return [], []
     with db_conn.cursor() as cursor:
         query = '''
-        SELECT film_id, title, description, release_year, rental_duration, rental_rate, length, replacement_cost, rating
+        SELECT *
         FROM film 
-        WHERE title LIKE %(k_p)s OR description LIKE %(k_p)s
+        WHERE LOWER(title) LIKE LOWER(%(k_p)s) OR LOWER(description) LIKE LOWER(%(k_p)s)
         '''
         cursor.execute(query, {'k_p':keyword_pattern})
         headers = [col[0] for col in cursor.description]
         results = list(cursor.fetchall())
         return results, headers
 
-# keyword_pattern = f'%{ui.keyword}%' # Удаляем глобальный вызов
-# keyword_search_result = search_data_about_film_with_keyword(db_conn, keyword_pattern) # Удаляем глобальный вызов
 
 def search_data_about_film_with_category_year(db_conn, category_year_param: tuple):
     """
@@ -93,24 +84,19 @@ def search_data_about_film_with_category_year(db_conn, category_year_param: tupl
     :category_year_param: Кортеж параметров запроса (category_name, release_year)
     :return: Кортеж: (Список кортежей с результатами запроса, Список имен столбцов)
     """
-    if db_conn is None:
-        print("Database connection is not established.")
-        return [], []
     with db_conn.cursor() as cursor:
         query = '''
-        SELECT film.film_id, film.title, film.description, film.release_year, category.name AS category_name
+        SELECT film.*, category.name AS category
         FROM film 
         JOIN film_category ON film.film_id = film_category.film_id 
         JOIN category ON film_category.category_id = category.category_id 
-        WHERE (category.name = %s AND film.release_year = %s)
+        WHERE (LOWER(category.name) = LOWER(%s) AND film.release_year = %s)
         '''
         cursor.execute(query, category_year_param)
         headers = [col[0] for col in cursor.description]
         results = list(cursor.fetchall())
         return results, headers
 
-# category_year_param = (ui.category, ui.release_year) # Удаляем глобальный вызов
-# category_year_search_result = search_data_about_film_with_category_year(db_conn, category_year_param) # Удаляем глобальный вызов
 
 def search_data_about_film_with_category_range_years(db_conn, category_year_range_param: tuple):
     """
@@ -120,12 +106,9 @@ def search_data_about_film_with_category_range_years(db_conn, category_year_rang
         :category_year_range_param: Кортеж параметров запроса (category_name, start_year, end_year)
         :return: Кортеж: (Список кортежей с результатами запроса, Список имен столбцов)
         """
-    if db_conn is None:
-        print("Database connection is not established.")
-        return [], []
     with db_conn.cursor() as cursor:
         query = '''
-        SELECT film.film_id, film.title, film.description, film.release_year, category.name AS category_name
+        SELECT film.*, category.name AS category
         FROM film 
         JOIN film_category ON film.film_id = film_category.film_id 
         JOIN category ON film_category.category_id = category.category_id 
@@ -135,6 +118,3 @@ def search_data_about_film_with_category_range_years(db_conn, category_year_rang
         headers = [col[0] for col in cursor.description]
         results = list(cursor.fetchall())
         return results, headers
-
-# category_year_range_param = (ui.category(), ui.start_range_year(), ui.end_range_year()) # Удаляем глобальный вызов
-# category_year_range_search_result = search_data_about_film_with_category_range_years(db_conn, category_year_range_param) # Удаляем глобальный вызов

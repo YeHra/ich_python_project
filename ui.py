@@ -1,5 +1,9 @@
-#import sys
-#sys.path.insert(0, "/home/user1/Документы/ICH/Python/project/lib/python3.12/site-packages")
+import db
+import sys
+
+from db import all_category
+
+sys.path.insert(0, "/home/user1/Документы/ICH/Python/project/lib/python3.12/site-packages")
 from prettytable import PrettyTable
 
 
@@ -26,54 +30,74 @@ def main_menu() -> int:
 
 
 def keyword() -> str:
-    return input('Введите название фильма или ключевое слово: ')
+    user_keyword = input('Введите название фильма или ключевое слово (или 0 для отмены): ').strip()
+    if user_keyword == '0':
+        return None
+    else:
+        return user_keyword
 
 
-def category() -> str:
-    return input('Введите жанр фильма: ')
+def category(db_conn) -> str:
+    all_categories = [cat[0] for cat in db.all_category(db_conn)]
+    lower_all_categories = [cat.lower() for cat in all_categories]
+    while True:
+        user_category = input('Введите жанр фильма (или 0 для отмены): ').strip().lower()
+        if user_category == '0':
+            return None
+        elif user_category in lower_all_categories:
+            return user_category
+        print('Такого жанра нет в списке. Введите жанр из списка жанров.')
 
 
-def release_year() -> int:
+
+def release_year(db_conn) -> int:
+    min_year = db.min_release_year(db_conn)
+    max_year = db.max_release_year(db_conn)
     while True:
         try:
-            year = int(input('Введите год выпуска фильма: '))
-            # Расширяем диапазон для гибкости
-            if 1900 <= year <= 2100:
+            year = int(input(f'Введите год выпуска ({min_year} - {max_year}) или 0 для отмены: '))
+            if year == 0:
+                return None
+            elif min_year <= year <= max_year:
                 return year
-            else:
-                print('Некорректное значение. Введите год в разумных пределах (например, от 1900 до 2100)')
+            print(f'Некорректное значение. Год должен быть в диапазоне {min_year} - {max_year}')
         except ValueError:
-            print('Некорректное значение. Введите целое число для года.')
+            print('Некорректное значение. Введите целое число для года')
 
 
-def start_range_year() -> int:
+def start_range_year(db_conn) -> int:
+    min_year = db.min_release_year(db_conn)
+    max_year = db.max_release_year(db_conn)
     while True:
         try:
-            year = int(input('Введите начальный год диапазона: '))
-            if 1900 <= year <= 2100:
-                return year
-            else:
-                print('Некорректное значение. Введите год в разумных пределах (например, от 1900 до 2100)')
+            start_year = int(input(f'Введите начальный год диапазона ({min_year} - {max_year}) или 0 для отмены: '))
+            if start_year == 0:
+                return None
+            if min_year <= start_year <= max_year:
+                return start_year
+            print(f'Некорректное значение. Год должен быть в диапазоне {min_year} - {max_year}')
         except ValueError:
-            print('Некорректное значение. Введите целое число для года.')
+            print('Некорректное значение. Введите целое число для года')
 
 
-def end_range_year() -> int:
+def end_range_year(db_conn, start_year: int) -> int:
+    max_year = db.max_release_year(db_conn)
     while True:
         try:
-            year = int(input('Введите конечный год диапазона: '))
-            if 1900 <= year <= 2100:
-                return year
+            end_year = int(input(f'Введите конечный год диапазона ({start_year} - {max_year}) или 0 для отмены: '))
+            if end_year == 0:
+                return None
+            elif start_year <= end_year <= max_year:
+                return end_year
             else:
-                print('Некорректное значение. Введите год в разумных пределах (например, от 1900 до 2100)')
+                 print(f'Некорректное значение. Год должен быть в диапазоне {start_year} - {max_year}')
         except ValueError:
-            print('Некорректное значение. Введите целое число для года.')
+            print('Некорректное значение. Введите целое число для года')
 
 
-# Обновленная функция print_table_data с использованием PrettyTable
 def print_table_data(headers: list[str], data: list[tuple]):
     if not data:
-        print("Нет данных для отображения.")
+        print("Нет данных для отображения")
         return
 
     table = PrettyTable()
@@ -86,7 +110,7 @@ def print_table_data(headers: list[str], data: list[tuple]):
 
 def ask_for_pagination() -> bool:
     """
-    Спрашивает пользователя, хочет ли он вывести следующие 10 результатов.
+    Функция спрашивает пользователя, хочет ли он вывести следующие 10 результатов.
     Возвращает True, если 'yes', False в противном случае.
     """
     while True:
@@ -96,4 +120,4 @@ def ask_for_pagination() -> bool:
         elif ask == 'no':
             return False
         else:
-            print("Некорректный ввод. Пожалуйста, введите 'yes' или 'no'.")
+            print("Некорректный ввод. Пожалуйста, введите 'yes' или 'no'")

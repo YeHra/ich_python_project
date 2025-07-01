@@ -10,7 +10,7 @@ db_mongo = client[settings.DATABASE_MONGO_NAME]
 search_info = db_mongo[settings.COLLECTION_MONGO_NAME]
 
 
-def search_log(search_type: str, params: dict, results_count: int):
+def search_log(search_type: str, params: dict, results_count: int) -> dict:
     '''
     Функция записывает в коллекцию MongoDB словарь с данными пользовательского запроса
     :param search_type: Тип поиска (e.g., "keyword", "category_year", "category_range_year")
@@ -26,12 +26,12 @@ def search_log(search_type: str, params: dict, results_count: int):
     try:
         search_info.insert_one(search_object)
     except Exception as e:
-        print(f"Error writing search log to MongoDB: {e}")
+        print(f"Возникла ошибка: {e}")
 
 
-def five_last_query():
+def five_last_query() -> list:
     """
-    Возвращает список из пяти последних запросов из MongoDB, готовый для PrettyTable.
+    Возвращает список из пяти последних запросов из MongoDB
     """
     results = []
     try:
@@ -40,13 +40,13 @@ def five_last_query():
             doc['timestamp'] = doc['timestamp'].strftime('%Y-%m-%d %H:%M:%S')
             results.append(doc)
     except Exception as e:
-        print(f"Error retrieving five last queries from MongoDB: {e}")
+        print(f"Возникла ошибка: {e}")
     return results
 
 
 def five_popular_query():
     """
-    Возвращает список из пяти самых популярных запросов (по категории) из MongoDB, готовый для PrettyTable.
+    Возвращает список из пяти самых популярных запросов (по категории) из MongoDB
     """
     popular_searches = []
     try:
@@ -57,7 +57,7 @@ def five_popular_query():
             {'$limit': 5}
         ]))
     except Exception as e:
-        print(f"Error retrieving five popular queries from MongoDB: {e}")
+        print(f"Возникла ошибка: {e}")
 
     formatted_results = [(doc['_id'], doc['count_category']) for doc in popular_searches]
     return formatted_results
