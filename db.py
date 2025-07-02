@@ -1,24 +1,29 @@
 import sys
+import settings
+import ui
+
 sys.path.insert(0, "/home/user1/Документы/ICH/Python/project/lib/python3.12/site-packages")
 import pymysql
-import settings
 
 
 def connection():
+    """
+    Функция выполняет подключение к базе данных
+    :return: Соединение с базой данных
+    """
     try:
-        conn = pymysql.connect(**settings.DATABASE_MYSQL_R) #
+        conn = pymysql.connect(**settings.DATABASE_MYSQL_R)  #
         return conn
     except pymysql.Error as e:
-        print(f"Ошибка подключения к базе данных: {e}")
+        ui.show_message(f'Ошибка подключения: {e}')
         return None
 
 
-
-def all_category(db_conn):
+def all_category(db_conn: object) -> list[tuple]:
     """
     Функция выполняет запрос к базе данных и возвращает результат запроса.
     :db_conn: Переменная, которая вызывает подключение к базе данных
-    :return: Список строк с результатами запроса
+    :return: Список кортежей с результатами запроса
     """
     with db_conn.cursor() as cursor:
         cursor.execute('SELECT name FROM category ORDER BY name')
@@ -26,7 +31,8 @@ def all_category(db_conn):
         results = [(category,) for category in categories]
     return results
 
-def min_release_year(db_conn) -> int:
+
+def min_release_year(db_conn) -> int | None:
     """
     Функция выполняет запрос к базе данных и возвращает результат запроса.
     :db_conn: Переменная, которая вызывает подключение к базе данных
@@ -41,7 +47,7 @@ def min_release_year(db_conn) -> int:
             return None
 
 
-def max_release_year(db_conn) -> int:
+def max_release_year(db_conn) -> int | None:
     """
     Функция выполняет запрос к базе данных и возвращает результат запроса.
     :db_conn: Переменная, которая вызывает подключение к базе данных
@@ -56,12 +62,12 @@ def max_release_year(db_conn) -> int:
             return None
 
 
-def search_data_about_film_with_keyword(db_conn, keyword_pattern: str):
+def search_data_about_film_with_keyword(db_conn: object, keyword_pattern: str) -> tuple[list, list]:
     """
     Функция принимает подключение к базе данных, список параметров запроса,
     выполняет запрос к базе данных и возвращает результат запроса.
     :db_conn: Переменная, которая вызывает подключение к базе данных
-    :keyword_pattern: Паттерн,включающий ключевое слово, вводимое пользователем
+    :keyword_pattern: Паттерн, включающий ключевое слово, вводимое пользователем
     :return: Кортеж: (Список кортежей с результатами запроса, Список имен столбцов)
     """
     with db_conn.cursor() as cursor:
@@ -70,17 +76,17 @@ def search_data_about_film_with_keyword(db_conn, keyword_pattern: str):
         FROM film 
         WHERE LOWER(title) LIKE LOWER(%(k_p)s) OR LOWER(description) LIKE LOWER(%(k_p)s)
         '''
-        cursor.execute(query, {'k_p':keyword_pattern})
+        cursor.execute(query, {'k_p': keyword_pattern})
         headers = [col[0] for col in cursor.description]
         results = list(cursor.fetchall())
         return results, headers
 
 
-def search_data_about_film_with_category_year(db_conn, category_year_param: tuple):
+def search_data_about_film_with_category_year(db_conn: object, category_year_param: tuple) -> tuple[list, list]:
     """
     Функция принимает подключение к базе данных, список параметров запроса,
     выполняет запрос к базе данных и возвращает результат запроса.
-    :db_conn: Переменная, которая вызывает подключение к базе данных
+    :db_conn: Переменная, которая вызывает подключение к базе данных.
     :category_year_param: Кортеж параметров запроса (category_name, release_year)
     :return: Кортеж: (Список кортежей с результатами запроса, Список имен столбцов)
     """
@@ -98,14 +104,14 @@ def search_data_about_film_with_category_year(db_conn, category_year_param: tupl
         return results, headers
 
 
-def search_data_about_film_with_category_range_years(db_conn, category_year_range_param: tuple):
+def search_data_about_film_with_category_range_years(db_conn: object, category_year_range_param: tuple) -> tuple[list, list]:
     """
-        Функция принимает подключение к базе данных, список параметров запроса,
-        выполняет запрос к базе данных и возвращает результат запроса.
-        :db_conn: Переменная, которая вызывает подключение к базе данных
-        :category_year_range_param: Кортеж параметров запроса (category_name, start_year, end_year)
-        :return: Кортеж: (Список кортежей с результатами запроса, Список имен столбцов)
-        """
+    Функция принимает подключение к базе данных, список параметров запроса,
+    выполняет запрос к базе данных и возвращает результат запроса.
+    :db_conn: Переменная, которая вызывает подключение к базе данных.
+    :category_year_range_param: Кортеж параметров запроса (category_name, start_year, end_year)
+    :return: Кортеж: (Список кортежей с результатами запроса, Список имен столбцов)
+    """
     with db_conn.cursor() as cursor:
         query = '''
         SELECT film.*, category.name AS category

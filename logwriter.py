@@ -1,8 +1,9 @@
 from datetime import datetime
 import settings
 import sys
-sys.path.insert(0,"/home/user1/Документы/ICH/Python/project/lib/python3.12/site-packages")
+sys.path.insert(0, "/home/user1/Документы/ICH/Python/project/lib/python3.12/site-packages")
 from pymongo import MongoClient
+
 
 client = MongoClient(settings.DATABASE_MONGO_W)
 
@@ -10,13 +11,14 @@ db_mongo = client[settings.DATABASE_MONGO_NAME]
 search_info = db_mongo[settings.COLLECTION_MONGO_NAME]
 
 
-def search_log(search_type: str, params: dict, results_count: int) -> dict:
-    '''
+def search_log(search_type: str, params: dict, results_count: int) -> dict | None:
+    """
     Функция записывает в коллекцию MongoDB словарь с данными пользовательского запроса
     :param search_type: Тип поиска (e.g., "keyword", "category_year", "category_range_year")
     :param params: Словарь с параметрами поиска (e.g., {"keyword": "test"}, {"category": "Action", "release_year": 2020})
     :param results_count: Количество найденных результатов
-    '''
+    :return: Словарь со всеми переданными параметрами
+    """
     search_object = {
         "timestamp": datetime.now(),
         "search_type": search_type,
@@ -29,9 +31,10 @@ def search_log(search_type: str, params: dict, results_count: int) -> dict:
         print(f"Возникла ошибка: {e}")
 
 
-def five_last_query() -> list:
+def five_last_query() -> list[dict]:
     """
     Возвращает список из пяти последних запросов из MongoDB
+    :return: Список словарей
     """
     results = []
     try:
@@ -44,9 +47,10 @@ def five_last_query() -> list:
     return results
 
 
-def five_popular_query():
+def five_popular_query() -> list[tuple]:
     """
     Возвращает список из пяти самых популярных запросов (по категории) из MongoDB
+    :return: Список кортежейо
     """
     popular_searches = []
     try:
