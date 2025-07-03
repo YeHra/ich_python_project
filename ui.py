@@ -1,9 +1,8 @@
 import db
 import sys
+
 sys.path.insert(0, "/home/user1/Документы/ICH/Python/project/lib/python3.12/site-packages")
 from prettytable import PrettyTable
-
-
 
 
 def show_message(message: str) -> None:
@@ -166,3 +165,8 @@ def ask_for_pagination() -> bool:
             return False
         else:
             show_message("Некорректный ввод. Пожалуйста, введите 'yes' или 'no'")
+
+
+def show_error(message: str):
+    print(f"Ошибка: {message}")
+    return message

@@ -1,6 +1,6 @@
-import logwriter
 import ui
 import db
+import search_result
 
 
 def paginator(headers: list[str], results: list[tuple], page_size: int = 10) -> None:
@@ -48,59 +48,15 @@ def get_action_result(ans: object, db_conn: object) -> tuple | None:
     """
     try:
         if ans == 1:
-            keyword = ui.keyword()
-            if keyword is None:
-                return "Возврат в меню", None
-            keyword_pattern = f'%{keyword}%'
-            results, headers = db.search_data_about_film_with_keyword(db_conn, keyword_pattern)
-            logwriter.search_log(search_type="keyword",
-                                 params={"keyword": keyword},
-                                 results_count=len(results))
-            return results, headers
+            return search_result.keyword_search(db_conn)
         elif ans == 2:
-            ui.print_table_data(["Жанр"], db.all_category(db_conn))
-            ui.print_table_data(["Минимальный год выпуска", "Максимальный год выпуска"],
-                                [(db.min_release_year(db_conn), db.max_release_year(db_conn))])
-            category = ui.category(db_conn)
-            if category is None:
-                return "Возврат в меню", None
-            release_year = ui.release_year(db_conn)
-            if release_year is None:
-                return "Возврат в меню", None
-            category_year_param = (category, release_year)
-            results, headers = db.search_data_about_film_with_category_year(db_conn, category_year_param)
-            logwriter.search_log(search_type="category_year",
-                                 params={"category": category,
-                                         "release_year": release_year},
-                                 results_count=len(results))
-            return results, headers
+            return search_result.category_year_search(db_conn)
         elif ans == 3:
-            ui.print_table_data(["Жанр"], db.all_category(db_conn))
-            ui.print_table_data(["Минимальный год выпуска", "Максимальный год выпуска"],
-                                [(db.min_release_year(db_conn), db.max_release_year(db_conn))])
-            category = ui.category(db_conn)
-            if category is None:
-                return "Возврат в меню", None
-            start_year = ui.start_range_year(db_conn)
-            if start_year is None:
-                return "Возврат в меню", None
-            end_year = ui.end_range_year(db_conn, start_year)
-            if end_year is None:
-                return "Возврат в меню", None
-            category_year_range_param = (category, start_year, end_year)
-            results, headers = db.search_data_about_film_with_category_range_years(db_conn, category_year_range_param)
-            logwriter.search_log(search_type="category_range_year",
-                                 params={"category": category, "min_year": start_year, "max_year": end_year},
-                                 results_count=len(results))
-            return results, headers
+            return search_result.category_range_year_search(db_conn)
         elif ans == 4:
-            results = logwriter.five_popular_query()
-            return results, ["Категория", "Количество запросов"]
+            return search_result.five_popular_search()
         elif ans == 5:
-            results = logwriter.five_last_query()
-            headers = list(results[0].keys())
-            data_for_table = [tuple(doc.values()) for doc in results]
-            return data_for_table, headers
+            return search_result.five_popular_search()
         elif ans == 0:
             return ui.show_message('Выход по команде пользователя'), None
         else:
