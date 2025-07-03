@@ -2,7 +2,7 @@ import db
 import sys
 
 sys.path.insert(0, "/home/user1/Документы/ICH/Python/project/lib/python3.12/site-packages")
-from prettytable import PrettyTable
+from prettytable import PrettyTable, ALL
 
 
 def show_message(message: str) -> None:
@@ -145,6 +145,8 @@ def print_table_data(headers: list[str], data: list[tuple]) -> None:
 
     table = PrettyTable()
     table.field_names = headers
+    table.hrules = ALL
+    table._max_width = {'film_id': 7, 'title': 12, 'category': 11, 'description': 30, 'actors_list': 30, 'rating': 6}
     for row in data:
         table.add_row(row)
 

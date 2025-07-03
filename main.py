@@ -56,7 +56,7 @@ def get_action_result(ans: object, db_conn: object) -> tuple | None:
         elif ans == 4:
             return search_result.five_popular_search()
         elif ans == 5:
-            return search_result.five_popular_search()
+            return search_result.five_last_search()
         elif ans == 0:
             return ui.show_message('Выход по команде пользователя'), None
         else:

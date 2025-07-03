@@ -72,10 +72,20 @@ def search_data_about_film_with_keyword(db_conn: object, keyword_pattern: str) -
     """
     with db_conn.cursor() as cursor:
         query = '''
-        SELECT *
-        FROM film 
-        WHERE LOWER(title) LIKE LOWER(%(k_p)s) OR LOWER(description) LIKE LOWER(%(k_p)s)
+            SELECT f.film_id, f.title, c.name AS category, f.description, f.release_year,
+        (
+        SELECT GROUP_CONCAT(CONCAT(a.first_name, ' ', a.last_name) SEPARATOR ', ')
+        FROM film_actor AS fa
+        JOIN actor AS a ON fa.actor_id = a.actor_id
+        WHERE fa.film_id = f.film_id
+        ) AS actors_list, l.name AS language, f.rental_rate, f.length, f.replacement_cost, f.rating    
+        FROM film AS f 
+        JOIN film_category AS fc ON f.film_id = fc.film_id
+        JOIN category AS c ON fc.category_id = c.category_id
+        JOIN language as l ON f.language_id = l.language_id 
+        WHERE LOWER(f.title) LIKE LOWER(%(k_p)s) OR LOWER(f.description) LIKE LOWER(%(k_p)s)
         '''
+
         cursor.execute(query, {'k_p': keyword_pattern})
         headers = [col[0] for col in cursor.description]
         results = list(cursor.fetchall())
@@ -92,11 +102,18 @@ def search_data_about_film_with_category_year(db_conn: object, category_year_par
     """
     with db_conn.cursor() as cursor:
         query = '''
-        SELECT film.*, category.name AS category
-        FROM film 
-        JOIN film_category ON film.film_id = film_category.film_id 
-        JOIN category ON film_category.category_id = category.category_id 
-        WHERE (LOWER(category.name) = LOWER(%s) AND film.release_year = %s)
+            SELECT f.film_id, f.title, c.name AS category, f.description, f.release_year,
+        (
+        SELECT GROUP_CONCAT(CONCAT(a.first_name, ' ', a.last_name) SEPARATOR ', ')
+        FROM film_actor AS fa
+        JOIN actor AS a ON fa.actor_id = a.actor_id
+        WHERE fa.film_id = f.film_id
+        ) AS actors_list, l.name AS language, f.rental_rate, f.length, f.replacement_cost, f.rating    
+        FROM film AS f 
+        JOIN film_category AS fc ON f.film_id = fc.film_id
+        JOIN category AS c ON fc.category_id = c.category_id
+        JOIN language as l ON f.language_id = l.language_id  
+        WHERE (LOWER(c.name) = LOWER(%s) AND f.release_year = %s)
         '''
         cursor.execute(query, category_year_param)
         headers = [col[0] for col in cursor.description]
@@ -114,11 +131,18 @@ def search_data_about_film_with_category_range_years(db_conn: object, category_y
     """
     with db_conn.cursor() as cursor:
         query = '''
-        SELECT film.*, category.name AS category
-        FROM film 
-        JOIN film_category ON film.film_id = film_category.film_id 
-        JOIN category ON film_category.category_id = category.category_id 
-        WHERE (category.name = %s AND film.release_year BETWEEN %s AND %s) 
+            SELECT f.film_id, f.title, c.name AS category, f.description, f.release_year,
+        (
+        SELECT GROUP_CONCAT(CONCAT(a.first_name, ' ', a.last_name) SEPARATOR ', ')
+        FROM film_actor AS fa
+        JOIN actor AS a ON fa.actor_id = a.actor_id
+        WHERE fa.film_id = f.film_id
+        ) AS actors_list, l.name AS language, f.rental_rate, f.length, f.replacement_cost, f.rating    
+        FROM film AS f 
+        JOIN film_category AS fc ON f.film_id = fc.film_id
+        JOIN category AS c ON fc.category_id = c.category_id
+        JOIN language as l ON f.language_id = l.language_id 
+        WHERE (c.name = %s AND f.release_year BETWEEN %s AND %s) 
         '''
         cursor.execute(query, category_year_range_param)
         headers = [col[0] for col in cursor.description]
