@@ -1,5 +1,3 @@
-from typing import Any
-
 import ui
 import db
 import logwriter
@@ -31,8 +29,11 @@ def category_year_search(db_conn: object) -> tuple[str, None] | tuple[list, list
     ui.print_table_data(["Жанр"], db.all_category(db_conn))
     ui.print_table_data(["Минимальный год выпуска", "Максимальный год выпуска"],
                         [(db.min_release_year(db_conn), db.max_release_year(db_conn))])
-    category, release_year = ui.category(db_conn), ui.release_year(db_conn)
-    if category is None or release_year is None:
+    category = ui.category(db_conn)
+    if category is None:
+        return "Возврат в меню", None
+    release_year = ui.release_year(db_conn)
+    if release_year is None:
         return "Возврат в меню", None
     category_year_param = (category, release_year)
     results, headers = db.search_data_about_film_with_category_year(db_conn, category_year_param)
@@ -69,7 +70,7 @@ def category_range_year_search(db_conn: object) -> tuple[str, None] | tuple[list
     return results, headers
 
 
-def five_last_search() -> tuple[list[tuple[Any, ...]], list[Any]]:
+def five_last_search() -> tuple[list[tuple], list]:
     """
     Возвращает 5 последних поисковых запросов из MongoDB
     :return: Кортеж с результатами

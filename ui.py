@@ -1,7 +1,4 @@
 import db
-import sys
-
-sys.path.insert(0, "/home/user1/Документы/ICH/Python/project/lib/python3.12/site-packages")
 from prettytable import PrettyTable, ALL
 
 
