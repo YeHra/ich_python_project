@@ -26,7 +26,7 @@ def all_category(db_conn: object) -> list[tuple]:
     :return: Список кортежей с результатами запроса
     """
     with db_conn.cursor() as cursor:
-        cursor.execute('SELECT name FROM category ORDER BY name')
+        cursor.execute('SELECT DISTINCT name FROM category ORDER BY name')
         categories = [row[0] for row in cursor.fetchall()]
         results = [(category,) for category in categories]
     return results
